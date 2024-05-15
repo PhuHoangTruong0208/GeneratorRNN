@@ -95,6 +95,10 @@ class Tokenizer(nn.Module):
         self.text_to_number = {v:k for k,v in enumerate(self.vocab)}
         self.number_to_text = {k:v for k,v in enumerate(self.vocab)}
         self.embedding = nn.Embedding(self.vocab_size, hidden_dim).to(device)
+        if os.path.exists("embedding.pth") == False:
+            torch.save(self.embedding.state_dict(), "embedding.pth")
+        else:
+            self.embedding.load_state_dict(torch.load("embedding.pth"))
         self.__run__()
     
     # lưu thứ tự từ vựng vào file txt (thứ tự từ vựng là quan trọng vì nó sẽ định hình các token cho việc lưu model khi load lại k gặp lỗi bất đồng bộ token)
@@ -353,12 +357,12 @@ class SuperRNN:
 
 x, y = [], []
 with open("data_pretrain.txt", mode="r", encoding="utf-8") as file:
-    data = file.read().splitlines()
+    data = file.read().splitlines()[:20000]
 for i in range(len(data)-1):
     x.append(data[i])
     y.append(data[i+1])
 
-model = SuperRNN(x, y, max_sequence_length=10, start_limit=0, limit_total_sentences=500, hidden_dim=512, num_layers=1, dropout=0.005, lr=0.001, epochs=100, limit_break_train=1, model_file_name="states_pretrain.pth")
+model = SuperRNN(x, y, max_sequence_length=50, start_limit=0, limit_total_sentences=10000, hidden_dim=512, num_layers=2, dropout=0.01, lr=0.001, epochs=500, limit_break_train=0.5, model_file_name="states_pretrain1.pth")
 while True:
     inp = input("Bạn : ")
     predict = model.predicting_progress(inp)
